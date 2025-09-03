@@ -1,0 +1,51 @@
+version: '3.8'
+
+services:
+  api:
+    build: 
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: wallet-api
+    ports:
+      - "8000:8000"
+    environment:
+      - SENDGRID_API_KEY=${SENDGRID_API_KEY}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
+      - WALLET_ORGANIZATION=${WALLET_ORGANIZATION:-Wallet App}
+      - WALLET_PASS_TYPE_ID=${WALLET_PASS_TYPE_ID:-pass.com.walletapp.generic}
+      - WALLET_TEAM_ID=${WALLET_TEAM_ID:-DEMO123456}
+      - PYTHONUNBUFFERED=1
+    volumes:
+      - ./backend:/app
+    networks:
+      - wallet-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+  web:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: wallet-web
+    ports:
+      - "3000:3000"
+    depends_on:
+      - api
+    networks:
+      - wallet-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+networks:
+  wallet-network:
+    driver: bridge
