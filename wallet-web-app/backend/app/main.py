@@ -4,9 +4,11 @@ FastAPI backend for PDF to Wallet conversion.
 
 import json
 import logging
+import os
 import re
 from typing import Dict
 
+from dotenv import load_dotenv
 from fastapi import FastAPI, File, Form, HTTPException, Request, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
@@ -15,6 +17,9 @@ import uvicorn
 from .services.pdf_service import PDFService
 from .services.email_service import EmailService
 from .services.rate_limiter import RateLimiter
+
+# Load environment variables from .env file
+load_dotenv()
 
 # Configure logging
 logging.basicConfig(

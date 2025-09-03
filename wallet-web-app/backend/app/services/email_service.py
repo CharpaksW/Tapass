@@ -28,27 +28,41 @@ class EmailService:
         if not self.has_sendgrid:
             logger.warning("SendGrid not available or API key not set")
     
-    async def send_wallet_json(self, to_email: str, wallet_data: Dict) -> bool:
+    async def send_wallet_json(self, to_email: str, wallet_data) -> bool:
         """Send wallet JSON as email attachment"""
         if not self.has_sendgrid:
             logger.error("SendGrid not configured")
             return False
         
         try:
+            # Check if wallet_data is a list (multiple passes) or single pass
+            is_multiple = isinstance(wallet_data, list)
+            pass_count = len(wallet_data) if is_multiple else 1
+            
             # Convert wallet data to JSON
             json_content = json.dumps(wallet_data, indent=2, ensure_ascii=False)
             json_bytes = json_content.encode('utf-8')
             
+            # Create email with appropriate subject and content
+            if is_multiple:
+                subject = f'Your {pass_count} Wallet Passes JSON'
+                content_description = f'Your PDF has been successfully processed and converted to {pass_count} wallet pass JSON files.'
+                file_description = f'Please find the wallet.json file attached containing all {pass_count} passes.'
+            else:
+                subject = 'Your Wallet Pass JSON'
+                content_description = 'Your PDF has been successfully processed and converted to a wallet pass JSON format.'
+                file_description = 'Please find the wallet.json file attached to this email.'
+            
             # Create email
             message = Mail(
-                from_email='noreply@walletapp.com',  # Replace with your verified sender
+                from_email='liorzats.snkr@gmail.com',  # Replace with your verified sender
                 to_emails=to_email,
-                subject='Your Wallet JSON',
+                subject=subject,
                 html_content=f"""
-                <h2>Your Wallet Pass JSON</h2>
+                <h2>Your Wallet Pass{' JSON' if not is_multiple else 'es JSON'}</h2>
                 <p>Hi there!</p>
-                <p>Your PDF has been successfully processed and converted to a wallet pass JSON format.</p>
-                <p>Please find the wallet.json file attached to this email.</p>
+                <p>{content_description}</p>
+                <p>{file_description}</p>
                 <p>You can use this JSON file to create Apple Wallet passes or integrate with other wallet services.</p>
                 <br>
                 <p>Best regards,<br>Wallet App Team</p>

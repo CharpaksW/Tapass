@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Network Debug Test</title>
+</head>
+<body>
+    <h1>Network Connection Debug</h1>
+    <div id="results"></div>
+    
+    <script>
+        const results = document.getElementById('results');
+        
+        function log(message) {
+            results.innerHTML += '<p>' + message + '</p>';
+            console.log(message);
+        }
+        
+        async function testConnections() {
+            log('Starting network tests...');
+            
+            // Test 1: Frontend server
+            try {
+                const frontendResponse = await fetch('http://localhost:3000');
+                log('✅ Frontend (localhost:3000): ' + frontendResponse.status);
+            } catch (error) {
+                log('❌ Frontend (localhost:3000): ' + error.message);
+            }
+            
+            // Test 2: Backend server direct
+            try {
+                const backendResponse = await fetch('http://localhost:8000/api/health');
+                log('✅ Backend direct (localhost:8000): ' + backendResponse.status);
+            } catch (error) {
+                log('❌ Backend direct (localhost:8000): ' + error.message);
+            }
+            
+            // Test 3: Backend through proxy
+            try {
+                const proxyResponse = await fetch('/api/health');
+                log('✅ Backend via proxy (/api/health): ' + proxyResponse.status);
+            } catch (error) {
+                log('❌ Backend via proxy (/api/health): ' + error.message);
+            }
+            
+            // Test 4: Check what servers are running
+            log('Check the terminal windows to see if servers are actually running!');
+        }
+        
+        testConnections();
+    </script>
+</body>
+</html>
