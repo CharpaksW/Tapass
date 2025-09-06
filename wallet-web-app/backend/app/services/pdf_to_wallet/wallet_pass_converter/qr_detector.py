@@ -83,8 +83,8 @@ class QRDetector:
                 logger.warning(f"Page {page_num}: No QR codes found despite trying {len(preprocessed_images)} different methods")
                 
             # Save debug images if requested
-            if debug_save:
-                self._save_debug_images(img, gray, preprocessed_images, page_num)
+            #if debug_save:
+            #    self._save_debug_images(img, gray, preprocessed_images, page_num)
                         
         except Exception as e:
             logger.warning(f"QR detection failed on page {page_num}: {e}")
