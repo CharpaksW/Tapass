@@ -76,10 +76,21 @@ pip install pymupdf opencv-python pillow jsonschema python-dateutil numpy
 ```
 
 ### Optional LLM Testing
-For LLM-assisted processing tests, set:
+For LLM-assisted processing tests, set your OpenAI API key:
 ```bash
-export ANTHROPIC_API_KEY=your_api_key_here
+export OPENAI_API_KEY=your_openai_api_key_here
 ```
+
+**Rate Limiting Protection**: By default, LLM is disabled during bulk testing to avoid OpenAI rate limits. To enable LLM for testing:
+```bash
+export ENABLE_LLM_TESTING=true
+```
+
+**Important**: 
+- GPT-4o-mini is used for better rate limits and lower cost
+- Built-in rate limiting (1-second delays) prevents API overuse
+- Automatic retry on rate limit errors with 5-second backoff
+
 
 ## Test Results Interpretation
 

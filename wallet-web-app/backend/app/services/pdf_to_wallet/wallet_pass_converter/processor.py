@@ -28,8 +28,7 @@ class WalletPassProcessor:
     
     def process_pdf(self, pdf_path: str, organization: str, pass_type_id: str, 
                    team_id: str, pass_type: str = None, timezone: str = "+00:00",
-                   use_llm: bool = False, llm_provider: str = "anthropic", 
-                   api_key_env: str = "ANTHROPIC_API_KEY") -> List[Dict]:
+                   use_llm: bool = True, api_key_env: str = "OPENAI_API_KEY") -> List[Dict]:
         """Main processing pipeline"""
         logger.info(f"Processing PDF: {pdf_path}")
         
@@ -95,7 +94,7 @@ class WalletPassProcessor:
         # Optional LLM mapping
         if use_llm:
             logger.info("Attempting LLM field mapping...")
-            self.llm_mapper = LLMMapper(llm_provider)
+            self.llm_mapper = LLMMapper()
             llm_result = asyncio.run(self.llm_mapper.map_fields(ticket_data, api_key_env))
             
             if llm_result:
