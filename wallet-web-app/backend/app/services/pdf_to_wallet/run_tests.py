@@ -10,6 +10,19 @@ import os
 import sys
 from pathlib import Path
 
+# Load environment variables from .env file
+try:
+    from dotenv import load_dotenv
+    # Look for .env file in the project root (4 levels up from run_tests.py)
+    env_path = Path(__file__).parent.parent.parent.parent.parent / '.env'
+    if env_path.exists():
+        load_dotenv(env_path)
+        print(f"✅ Loaded environment variables from: {env_path}")
+    else:
+        print("⚠️  .env file not found, using system environment variables")
+except ImportError:
+    print("⚠️  python-dotenv not available, using system environment variables")
+
 # Add current directory to path
 current_dir = Path(__file__).parent
 sys.path.insert(0, str(current_dir))

@@ -1,0 +1,52 @@
+{
+  "formatVersion": 1,
+  "passTypeIdentifier": "pass.com.testorg.generic",
+  "teamIdentifier": "TEST123456",
+  "organizationName": "Test Organization",
+  "description": "Eventticket Pass",
+  "serialNumber": "TICKET_2856C2DF",
+  "foregroundColor": "rgb(255, 255, 255)",
+  "backgroundColor": "rgb(0, 0, 0)",
+  "labelColor": "rgb(255, 255, 255)",
+  "barcode": {
+    "format": "PKBarcodeFormatQR",
+    "message": "26004130163400020014-1.1783797",
+    "messageEncoding": "iso-8859-1"
+  },
+  "locale": "he-IL",
+  "eventTicket": {
+    "primaryFields": [
+      {
+        "key": "event",
+        "label": "EVENT",
+        "value": "Eventticket Pass"
+      }
+    ],
+    "secondaryFields": [
+      {
+        "key": "venue",
+        "label": "VENUE",
+        "value": "10 אולם"
+      },
+      {
+        "key": "datetime",
+        "label": "DATE & TIME",
+        "value": "2025-08-15T22:00:00+00:00",
+        "dateStyle": "PKDateStyleShort",
+        "timeStyle": "PKDateStyleShort"
+      }
+    ],
+    "auxiliaryFields": [
+      {
+        "key": "seat",
+        "label": "SEAT",
+        "value": "4"
+      },
+      {
+        "key": "auditorium",
+        "label": "AUDITORIUM",
+        "value": "10"
+      }
+    ]
+  }
+}

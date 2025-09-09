@@ -15,11 +15,11 @@ Usage:
         --outdir out
 
     # With LLM assistance:
-    export ANTHROPIC_API_KEY=sk-***yourkey***
-    python pdf_to_wallet_pass_modular.py input.pdf --use-llm --provider anthropic --api-key-env ANTHROPIC_API_KEY
+    export OPENAI_API_KEY=sk-***yourkey***
+    python pdf_to_wallet_pass_modular.py input.pdf --use-llm --api-key-env OPENAI_API_KEY
 
 Requirements:
-    pip install pymupdf opencv-python pillow jsonschema anthropic python-dateutil numpy
+    pip install pymupdf opencv-python pillow jsonschema openai python-dateutil numpy
 
 Limitations:
     - Requires clear text and/or QR codes in PDF
@@ -73,8 +73,8 @@ def main():
     
     # LLM options
     parser.add_argument("--use-llm", action="store_true", help="Use LLM for field mapping")
-    parser.add_argument("--provider", default="anthropic", choices=["anthropic"], help="LLM provider")
-    parser.add_argument("--api-key-env", default="ANTHROPIC_API_KEY", help="Environment variable for API key")
+    # Note: Only OpenAI provider is supported
+    parser.add_argument("--api-key-env", default="OPENAI_API_KEY", help="Environment variable for API key")
     
     # Utility options
     parser.add_argument("--self-test", action="store_true", help="Run self-tests and exit")
@@ -123,7 +123,6 @@ def main():
             pass_type=args.type,
             timezone=args.tz,
             use_llm=args.use_llm,
-            llm_provider=args.provider,
             api_key_env=args.api_key_env
         )
         

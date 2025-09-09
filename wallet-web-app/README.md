@@ -106,7 +106,8 @@ Convert PDF to wallet pass and email result.
 |----------|-------------|----------|---------|
 | `SENDGRID_API_KEY` | SendGrid API key | Yes | - |
 | `SENDER_EMAIL` | Verified sender email | No | noreply@walletapp.com |
-| `ANTHROPIC_API_KEY` | Anthropic Claude API key (for LLM) | No | - |
+| `OPENAI_API_KEY` | OpenAI API key for ChatGPT/GPT-4 (for LLM) | No | - |
+| `ANTHROPIC_API_KEY` | Anthropic Claude API key (legacy LLM support) | No | - |
 | `WALLET_ORGANIZATION` | Organization name for passes | No | Wallet App |
 | `WALLET_PASS_TYPE_ID` | Apple Pass Type ID | No | pass.com.walletapp.generic |
 | `WALLET_TEAM_ID` | Apple Developer Team ID | No | DEMO123456 |

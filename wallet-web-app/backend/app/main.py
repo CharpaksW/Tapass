@@ -181,7 +181,7 @@ async def process_pdf(
             organization = os.getenv("WALLET_ORGANIZATION", "Wallet App")
             pass_type_id = os.getenv("WALLET_PASS_TYPE_ID", "pass.com.walletapp.generic")
             team_id = os.getenv("WALLET_TEAM_ID", "DEMO123456")
-            use_llm = os.getenv("ANTHROPIC_API_KEY") is not None
+            use_llm = os.getenv("OPENAI_API_KEY") is not None
             
             wallet_data = pdf_service.pdf_to_wallet(
                 pdf_bytes=file_content,

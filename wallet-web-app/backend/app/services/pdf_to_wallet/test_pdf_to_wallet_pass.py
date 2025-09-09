@@ -21,6 +21,19 @@ import unittest
 from pathlib import Path
 from typing import Dict, List, Optional
 
+# Load environment variables from .env file
+try:
+    from dotenv import load_dotenv
+    # Look for .env file in the project root (4 levels up from test file)
+    env_path = Path(__file__).parent.parent.parent.parent.parent / '.env'
+    if env_path.exists():
+        load_dotenv(env_path)
+        print(f"✅ Loaded environment variables from: {env_path}")
+    else:
+        print("⚠️  .env file not found, using system environment variables")
+except ImportError:
+    print("⚠️  python-dotenv not available, using system environment variables")
+
 # Add the current directory to Python path for imports
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
@@ -58,15 +71,29 @@ class TestPDFToWalletPass(unittest.TestCase):
         cls.output_dir.mkdir(exist_ok=True)
         
         # Test configuration
+        # Disable LLM for bulk testing to avoid rate limits - enable only for single file tests
+        use_llm_for_testing = os.getenv("ENABLE_LLM_TESTING", "false").lower() == "true"
+        
         cls.test_config = {
             "organization": "Test Organization",
             "pass_type_id": "pass.com.testorg.generic",
             "team_id": "TEST123456",
-            "timezone": "+00:00"
+            "timezone": "+00:00",
+            "use_llm": use_llm_for_testing and bool(os.getenv("OPENAI_API_KEY")),
+            "api_key_env": "OPENAI_API_KEY"
         }
         
         logger.info(f"Processing PDF files from: {cls.test_files_dir}")
         logger.info(f"Generated passes will be saved to: {cls.output_dir.absolute()}")
+        
+        # Log LLM configuration
+        if cls.test_config["use_llm"]:
+            logger.info("✅ LLM enabled with OpenAI provider")
+        else:
+            if os.getenv("OPENAI_API_KEY"):
+                logger.info("⚠️  LLM disabled for bulk testing (to avoid rate limits) - set ENABLE_LLM_TESTING=true to enable")
+            else:
+                logger.info("⚠️  LLM disabled - set OPENAI_API_KEY environment variable to enable enhanced processing")
     
     def test_generate_passes_from_all_files(self):
         """Generate wallet passes from all PDF test files"""

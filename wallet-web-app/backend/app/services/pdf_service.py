@@ -99,8 +99,7 @@ class PDFService:
                     pass_type=pass_type,
                     timezone=timezone,
                     use_llm=use_llm,
-                    llm_provider="anthropic",
-                    api_key_env="ANTHROPIC_API_KEY"
+                    api_key_env="OPENAI_API_KEY"
                 )
                 
                 if not passes:
