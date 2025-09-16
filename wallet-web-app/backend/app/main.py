@@ -199,9 +199,9 @@ async def process_pdf(
                 detail={"ok": False, "error": "Failed to process PDF. Please ensure it's a valid ticket PDF."}
             )
         
-        # Send email
+        # Send email with .pkpass files (falls back to JSON if PKPass generation fails)
         try:
-            email_sent = await email_service.send_wallet_json(email, wallet_data)
+            email_sent = await email_service.send_wallet_pkpass(email, wallet_data)
             if not email_sent:
                 raise ValueError("Email sending failed")
         except Exception as e:
@@ -212,7 +212,7 @@ async def process_pdf(
             )
         
         # Log success
-        logger.info(f"Successfully processed and emailed wallet JSON to {email}")
+        logger.info(f"Successfully processed and emailed wallet pass(es) to {email}")
         
         return {"ok": True}
     
