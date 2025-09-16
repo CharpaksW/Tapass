@@ -17,7 +17,7 @@ import os
 from pathlib import Path
 
 try:
-    from .pdf_to_wallet.wallet_pass_converter.processor import WalletPassProcessor
+    from .pdf_to_wallet.pdf_to_json.processor import WalletPassProcessor
     HAS_PDF_PROCESSOR = True
 except ImportError as e:
     logger.warning(f"Direct import failed: {e}")

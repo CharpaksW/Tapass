@@ -5,7 +5,9 @@ Email service using SendGrid.
 import json
 import logging
 import os
-from typing import Dict
+import tempfile
+from pathlib import Path
+from typing import Dict, Union, List
 
 try:
     import sendgrid
@@ -93,3 +95,123 @@ class EmailService:
         except Exception as e:
             logger.error(f"Failed to send email: {e}")
             return False
+    
+    async def send_wallet_pkpass(self, to_email: str, wallet_data: Union[Dict, List[Dict]]) -> bool:
+        """Generate and send .pkpass files as email attachments"""
+        if not self.has_sendgrid:
+            logger.error("SendGrid not configured")
+            return False
+        
+        try:
+            # Import PKPassCreator here to avoid circular imports
+            from .pdf_to_wallet.pkpasscreator import PKPassCreator
+            
+            # Check if PKPass generation is configured
+            try:
+                creator = PKPassCreator()
+            except ValueError as e:
+                logger.warning(f"PKPass generation not configured: {e}")
+                # Fall back to JSON sending
+                return await self.send_wallet_json(to_email, wallet_data)
+            
+            # Check if wallet_data is a list (multiple passes) or single pass
+            is_multiple = isinstance(wallet_data, list)
+            passes_to_process = wallet_data if is_multiple else [wallet_data]
+            pass_count = len(passes_to_process)
+            
+            attachments = []
+            
+            # Generate .pkpass files for each pass
+            with tempfile.TemporaryDirectory() as temp_dir:
+                temp_path = Path(temp_dir)
+                
+                for i, pass_data in enumerate(passes_to_process):
+                    # Create a temporary JSON file for this pass
+                    json_filename = f"pass_{i+1}.json" if is_multiple else "pass.json"
+                    json_file = temp_path / json_filename
+                    
+                    with open(json_file, 'w', encoding='utf-8') as f:
+                        json.dump(pass_data, f, indent=2, ensure_ascii=False)
+                    
+                    try:
+                        # Generate .pkpass file
+                        pkpass_path = creator.generate_pkpass(
+                            json_file=str(json_file),
+                            output_dir=str(temp_path)
+                        )
+                        
+                        # Read the .pkpass file and create attachment
+                        with open(pkpass_path, 'rb') as f:
+                            pkpass_bytes = f.read()
+                        
+                        encoded_pkpass = base64.b64encode(pkpass_bytes).decode()
+                        filename = Path(pkpass_path).name
+                        
+                        attachment = Attachment(
+                            FileContent(encoded_pkpass),
+                            FileName(filename),
+                            FileType('application/vnd.apple.pkpass'),
+                            Disposition('attachment')
+                        )
+                        attachments.append(attachment)
+                        
+                    except Exception as e:
+                        logger.error(f"Failed to generate .pkpass file for pass {i+1}: {e}")
+                        # Continue with other passes if one fails
+                        continue
+                
+                if not attachments:
+                    logger.error("No .pkpass files were generated successfully")
+                    # Fall back to JSON sending
+                    return await self.send_wallet_json(to_email, wallet_data)
+                
+                # Create email with appropriate subject and content
+                if pass_count > 1:
+                    subject = f'Your {pass_count} Apple Wallet Passes'
+                    content_description = f'Your PDF has been successfully processed and converted to {len(attachments)} Apple Wallet passes.'
+                    file_description = f'Please find the .pkpass files attached. You can open them directly on your iPhone to add them to Apple Wallet.'
+                else:
+                    subject = 'Your Apple Wallet Pass'
+                    content_description = 'Your PDF has been successfully processed and converted to an Apple Wallet pass.'
+                    file_description = 'Please find the .pkpass file attached. You can open it directly on your iPhone to add it to Apple Wallet.'
+                
+                # Create email
+                message = Mail(
+                    from_email='liorzats.snkr@gmail.com',  # Replace with your verified sender
+                    to_emails=to_email,
+                    subject=subject,
+                    html_content=f"""
+                    <h2>Your Apple Wallet Pass{'es' if pass_count > 1 else ''}</h2>
+                    <p>Hi there!</p>
+                    <p>{content_description}</p>
+                    <p>{file_description}</p>
+                    <p><strong>How to use:</strong></p>
+                    <ul>
+                        <li>On iPhone/iPad: Tap the .pkpass file attachment to add it to Apple Wallet</li>
+                        <li>On Mac: Double-click the .pkpass file to preview it</li>
+                        <li>You can also email the .pkpass file to yourself or others</li>
+                    </ul>
+                    <br>
+                    <p>Best regards,<br>Wallet App Team</p>
+                    """
+                )
+                
+                # Add all attachments
+                message.attachment = attachments
+                
+                # Send email
+                sg = sendgrid.SendGridAPIClient(api_key=self.api_key)
+                response = sg.send(message)
+                
+                if response.status_code in [200, 201, 202]:
+                    logger.info(f"Email with {len(attachments)} .pkpass file(s) sent successfully to {to_email}")
+                    return True
+                else:
+                    logger.error(f"SendGrid API error: {response.status_code}")
+                    return False
+                    
+        except Exception as e:
+            logger.error(f"Failed to send .pkpass email: {e}")
+            # Fall back to JSON sending
+            logger.info("Falling back to JSON email...")
+            return await self.send_wallet_json(to_email, wallet_data)

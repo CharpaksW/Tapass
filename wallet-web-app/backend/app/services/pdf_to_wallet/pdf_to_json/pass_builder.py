@@ -26,11 +26,14 @@ class PassBuilder:
             "foregroundColor": "rgb(255, 255, 255)",
             "backgroundColor": "rgb(0, 0, 0)",
             "labelColor": "rgb(255, 255, 255)",
-            "barcode": {
-                "format": "PKBarcodeFormatQR",
-                "message": ticket_data.barcode_message,
-                "messageEncoding": "iso-8859-1"
-            }
+            "barcodes": [
+                {
+                    "format": "PKBarcodeFormatQR",
+                    "message": ticket_data.barcode_message,
+                    "messageEncoding": "utf-8",
+                    "altText": ticket_data.barcode_message
+                }
+            ]
         }
         
         # Add locale if Hebrew detected

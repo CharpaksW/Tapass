@@ -43,11 +43,11 @@ logger = logging.getLogger(__name__)
 
 # Import our modular components
 try:
-    from wallet_pass_converter.processor import WalletPassProcessor
-    from wallet_pass_converter.utils import FileUtils, TestRunner
+    from pdf_to_json.processor import WalletPassProcessor
+    from pdf_to_json.utils import FileUtils, TestRunner
 except ImportError as e:
-    print(f"Failed to import wallet_pass_converter modules: {e}")
-    print("Make sure you're running from the correct directory with the wallet_pass_converter package")
+    print(f"Failed to import pdf_to_json modules: {e}")
+    print("Make sure you're running from the correct directory with the pdf_to_json package")
     sys.exit(1)
 
 
@@ -60,12 +60,12 @@ def main():
     )
     
     parser.add_argument("pdf_path", nargs='?', help="Path to input PDF file")
-    parser.add_argument("--organization", default="Test Organization", 
-                       help="Organization name for the pass (default: Test Organization)")
-    parser.add_argument("--pass-type-id", default="pass.com.testorg.generic", 
-                       help="Pass type identifier (default: pass.com.testorg.generic)")
-    parser.add_argument("--team-id", default="TEST123456", 
-                       help="Apple Developer Team ID (default: TEST123456)")
+    parser.add_argument("--organization", default="Omer Daniel", 
+                       help="Organization name for the pass (default: Omer Daniel)")
+    parser.add_argument("--pass-type-id", default="pass.com.wallet.pdf2wallet", 
+                       help="Pass type identifier (default: pass.com.wallet.pdf2wallet)")
+    parser.add_argument("--team-id", default="DSW9XCBAK2", 
+                       help="Apple Developer Team ID (default: DSW9XCBAK2)")
     parser.add_argument("--type", choices=["eventTicket", "boardingPass", "storeCard", "coupon", "generic"],
                        help="Pass type (auto-detected if not specified)")
     parser.add_argument("--tz", default="+00:00", help="Timezone offset (e.g., +03:00)")

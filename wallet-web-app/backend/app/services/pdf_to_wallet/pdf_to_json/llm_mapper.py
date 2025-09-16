@@ -5,6 +5,7 @@ LLM integration for enhanced field mapping and normalization.
 import json
 import logging
 import os
+import re
 import time
 import random
 from typing import Dict, Optional
@@ -69,32 +70,42 @@ class LLMMapper:
                 logger.info(f"Truncated text from {len(ticket_data.raw_text)} to {max_chars} characters for rate limit management")
             
             system_message = (
-                "You map structured facts from a ticket-like PDF into a strict schema. "
-                "Never invent values. Prefer QR payload for barcode_message. "
-                "Only use information that is clearly present in the provided text. "
-                "The text may contain Hebrew characters - handle Hebrew text properly "
-                "and extract Hebrew field names and values accurately. Hebrew text "
-                "reads right-to-left but numbers and codes remain left-to-right. "
-                "Return only valid JSON that matches the expected schema."
+                "You are a ticket classification and PKPass data extraction expert. "
+                "Analyze the raw text extracted from a PDF and:\n\n"
+                "1. CLASSIFY the ticket type based on content:\n"
+                "   - 'eventTicket': Concerts, sports, theater, shows, conferences\n"
+                "   - 'boardingPass': Flights, trains, buses, ferries\n"
+                "   - 'storeCard': Loyalty cards, membership cards\n"
+                "   - 'coupon': Discounts, vouchers, promotional offers\n"
+                "   - 'generic': Any other type of ticket/pass\n\n"
+                "2. EXTRACT key information for PKPass wallet format:\n"
+                "   - title: Main event/service name (required)\n"
+                "   - serial: Ticket number, booking reference, or unique identifier\n"
+                "   - barcode_message: QR code content or main barcode data\n"
+                "   - datetime: Event date/time in ISO format (YYYY-MM-DDTHH:MM:SS)\n"
+                "   - venue: Location, airport, station, or venue name\n"
+                "   - auditorium: Hall, gate, platform within venue\n"
+                "   - seat: Seat number, row, or seating assignment\n"
+                "   - name: Passenger/attendee name if present\n"
+                "   - flight: Flight number, train number, or service identifier\n"
+                "   - pnr: Passenger Name Record for flights\n"
+                "   - origin: Departure location for transportation\n"
+                "   - destination: Arrival location for transportation\n\n"
+                "RULES:\n"
+                "- Only extract information clearly present in the text\n"
+                "- Prefer QR payload data for barcode_message\n"
+                "- Handle Hebrew/RTL text properly (Hebrew text reads right-to-left)\n"
+                "- Return ONLY valid JSON matching the schema\n"
+                "- Your response must start with { and end with }"
             )
             
-            user_content = {
-                "raw_text": raw_text,
-                "qr_payloads": ticket_data.qr_payloads,
-                "candidates": {
-                    "dates": ticket_data.dates,
-                    "numbers": ticket_data.numbers,
-                    "codes": ticket_data.codes
-                }
-            }
-            
-            return await self._map_with_openai(api_key, system_message, user_content)
+            return await self._map_with_openai(api_key, system_message, ticket_data, raw_text)
                 
         except Exception as e:
             logger.warning(f"LLM mapping failed: {e}")
             return None
     
-    async def _map_with_openai(self, api_key: str, system_message: str, user_content: Dict) -> Optional[Dict]:
+    async def _map_with_openai(self, api_key: str, system_message: str, ticket_data: TicketData, raw_text: str) -> Optional[Dict]:
         """Handle OpenAI API integration"""
         # Simple client initialization - only pass api_key
         client = openai.OpenAI(api_key=api_key)
@@ -121,8 +132,8 @@ class LLMMapper:
                         "content": system_message
                     },
                     {
-                        "role": "user",
-                        "content": f"Map this ticket data to the schema: {json.dumps(user_content)}"
+                        "role": "user", 
+                        "content": f"Analyze this raw PDF text and classify the ticket, then extract PKPass data:\n\nRAW TEXT:\n{raw_text}\n\nQR CODE PAYLOADS:\n{json.dumps(ticket_data.qr_payloads)}\n\nDETECTED PATTERNS:\n- Dates: {json.dumps(ticket_data.dates)}\n- Numbers: {json.dumps(ticket_data.numbers)}\n- Codes: {json.dumps(ticket_data.codes)}\n\nReturn JSON with proper classification and extracted fields:"
                     }
                 ]
             )
@@ -156,10 +167,10 @@ class LLMMapper:
                                         "role": "system",
                                         "content": system_message
                                     },
-                                    {
-                                        "role": "user",
-                                        "content": f"Map this ticket data to the schema: {json.dumps(user_content)}"
-                                    }
+                                {
+                                    "role": "user",
+                                    "content": f"Analyze this raw PDF text and classify the ticket, then extract PKPass data:\n\nRAW TEXT:\n{raw_text}\n\nQR CODE PAYLOADS:\n{json.dumps(ticket_data.qr_payloads)}\n\nDETECTED PATTERNS:\n- Dates: {json.dumps(ticket_data.dates)}\n- Numbers: {json.dumps(ticket_data.numbers)}\n- Codes: {json.dumps(ticket_data.codes)}\n\nReturn JSON with proper classification and extracted fields:"
+                                }
                                 ]
                             )
                             logger.info(f"Retry attempt {attempt + 1} successful!")
@@ -183,9 +194,23 @@ class LLMMapper:
                 logger.error(f"🚨 UNEXPECTED API ERROR: {api_error}")
                 return None
         
-        # Parse response
+        # Parse response with enhanced error handling
         response_text = response.choices[0].message.content
+        
+        # Check for empty or None response
+        if not response_text:
+            logger.error("🚨 OpenAI returned empty response")
+            logger.error("This may indicate:")
+            logger.error("- Content filtering blocked the response")
+            logger.error("- API quota/rate limit issues")
+            logger.error("- Model output truncation")
+            return None
+        
+        # Log response for debugging (first 200 chars)
+        logger.debug(f"OpenAI response preview: {response_text[:200]}...")
+        
         try:
+            # Try to parse JSON
             llm_result = json.loads(response_text)
             
             # Validate against schema
@@ -193,8 +218,29 @@ class LLMMapper:
             logger.info("OpenAI LLM mapping successful and validated")
             return llm_result
             
-        except (json.JSONDecodeError, jsonschema.ValidationError) as e:
-            logger.warning(f"OpenAI LLM response validation failed: {e}")
+        except json.JSONDecodeError as e:
+            logger.error(f"🚨 JSON parsing failed: {e}")
+            logger.error(f"Raw response: '{response_text}'")
+            logger.error("This suggests the AI returned non-JSON content")
+            
+            # Try to extract JSON from response if it's wrapped in text
+            json_match = re.search(r'\{.*\}', response_text, re.DOTALL)
+            if json_match:
+                try:
+                    extracted_json = json_match.group(0)
+                    llm_result = json.loads(extracted_json)
+                    jsonschema.validate(llm_result, LLM_OUTPUT_SCHEMA)
+                    logger.info("✅ Recovered JSON from wrapped response")
+                    return llm_result
+                except (json.JSONDecodeError, jsonschema.ValidationError):
+                    logger.error("❌ Failed to extract valid JSON from response")
+            
+            return None
+            
+        except jsonschema.ValidationError as e:
+            logger.error(f"🚨 Schema validation failed: {e}")
+            logger.error(f"Response content: {response_text}")
+            logger.error("The AI returned valid JSON but it doesn't match the expected schema")
             return None
     
     
