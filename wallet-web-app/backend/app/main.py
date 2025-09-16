@@ -178,10 +178,18 @@ async def process_pdf(
         # Process PDF
         try:
             # Get configuration from environment variables
-            organization = os.getenv("WALLET_ORGANIZATION", "Wallet App")
-            pass_type_id = os.getenv("WALLET_PASS_TYPE_ID", "pass.com.walletapp.generic")
-            team_id = os.getenv("WALLET_TEAM_ID", "DEMO123456")
-            use_llm = os.getenv("OPENAI_API_KEY") is not None
+            organization = os.getenv("WALLET_ORGANIZATION")
+            pass_type_id = os.getenv("WALLET_PASS_TYPE_ID")
+            team_id = os.getenv("WALLET_TEAM_ID")
+            use_llm = os.getenv("OPENAI_API_KEY") is not None 
+            
+            # Validate required environment variables
+            if not organization:
+                raise ValueError("WALLET_ORGANIZATION environment variable is required")
+            if not pass_type_id:
+                raise ValueError("WALLET_PASS_TYPE_ID environment variable is required")
+            if not team_id:
+                raise ValueError("WALLET_TEAM_ID environment variable is required")
             
             wallet_data = pdf_service.pdf_to_wallet(
                 pdf_bytes=file_content,

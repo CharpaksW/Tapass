@@ -104,7 +104,7 @@ class EmailService:
         
         try:
             # Import PKPassCreator here to avoid circular imports
-            from .pdf_to_wallet.pkpasscreator import PKPassCreator
+            from .pdf_to_wallet.pkpass_creator import PKPassCreator
             
             # Check if PKPass generation is configured
             try:
