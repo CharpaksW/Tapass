@@ -1,5 +1,6 @@
 """
-Main processing pipeline that orchestrates all components.
+A processing pipeline that uses regex with LLM m.
+
 """
 
 import asyncio
@@ -12,6 +13,7 @@ from .qr_detector import QRDetector
 from .field_parser import FieldParser
 from .pass_builder import PassBuilder
 from .llm_mapper import LLMMapper
+from .llm_processor import LLMProcessor
 
 logger = logging.getLogger(__name__)
 
@@ -25,21 +27,68 @@ class WalletPassProcessor:
         self.field_parser = FieldParser()
         self.pass_builder = PassBuilder()
         self.llm_mapper = LLMMapper()
+        self.llm_processor = LLMProcessor()
     
     def process_pdf(self, pdf_path: str, organization: str, pass_type_id: str, 
                    team_id: str, pass_type: str = None, timezone: str = "+00:00",
-                   use_llm: bool = True, api_key_env: str = "OPENAI_API_KEY") -> List[Dict]:
-        """Main processing pipeline"""
+                   use_llm: bool = True, use_full_llm: bool = False, 
+                   api_key_env: str = "OPENAI_API_KEY") -> List[Dict]:
+        """Main processing pipeline
+        
+        Args:
+            pdf_path: Path to PDF file
+            organization: Organization name for the pass
+            pass_type_id: Apple Wallet pass type identifier
+            team_id: Apple Developer team ID
+            pass_type: Specific pass type or auto-detect if None
+            timezone: Timezone offset for datetime fields
+            use_llm: Whether to use LLM for enhanced field mapping (traditional approach)
+            use_full_llm: Whether to use full LLM processing (send entire PDF to LLM)
+            api_key_env: Environment variable name for OpenAI API key
+        """
         logger.info(f"Processing PDF: {pdf_path}")
+        
+        # Extract text first (needed for both approaches)
+        pdf_text = self.pdf_processor.extract_text(pdf_path)
+        if not pdf_text:
+            logger.error("No text extracted from PDF")
+            return []
+        
+        # Full LLM processing mode - send entire PDF to LLM
+        if use_full_llm:
+            logger.info("🤖 Using FULL LLM processing mode")
+            
+            if not self.llm_processor.is_available():
+                logger.error("Full LLM processing requested but LLM processor not available")
+                logger.info("Falling back to traditional processing...")
+                use_full_llm = False
+            else:
+                try:
+                    # Process entire PDF with Vision API
+                    llm_result = asyncio.run(
+                        self.llm_processor.process_pdf_with_vision(
+                            pdf_path, organization, pass_type_id, team_id
+                        )
+                    )
+                    
+                    if llm_result:
+                        logger.info("✅ Full LLM processing successful")
+                        return [llm_result]  # Return as single-item list
+                    else:
+                        logger.warning("Full LLM processing failed, falling back to traditional processing")
+                        use_full_llm = False
+                        
+                except Exception as e:
+                    logger.error(f"Full LLM processing failed: {e}")
+                    logger.info("Falling back to traditional processing...")
+                    use_full_llm = False
+        
+        # Traditional processing pipeline (original logic)
+        logger.info("🔧 Using traditional processing pipeline")
         
         # Initialize ticket data
         ticket_data = TicketData()
-        
-        # Extract text
-        ticket_data.raw_text = self.pdf_processor.extract_text(pdf_path)
-        if not ticket_data.raw_text:
-            logger.error("No text extracted from PDF")
-            return []
+        ticket_data.raw_text = pdf_text
         print(ticket_data.raw_text) 
         # Detect locale
         ticket_data.locale = self.field_parser.detect_locale(ticket_data.raw_text)

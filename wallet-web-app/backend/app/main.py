@@ -181,7 +181,8 @@ async def process_pdf(
             organization = os.getenv("WALLET_ORGANIZATION")
             pass_type_id = os.getenv("WALLET_PASS_TYPE_ID")
             team_id = os.getenv("WALLET_TEAM_ID")
-            use_llm = os.getenv("OPENAI_API_KEY") is not None 
+            use_llm = os.getenv("OPENAI_API_KEY") is not None
+            use_full_llm = os.getenv("USE_FULL_LLM", "false").lower() == "true" 
             
             # Validate required environment variables
             if not organization:
@@ -196,7 +197,8 @@ async def process_pdf(
                 organization=organization,
                 pass_type_id=pass_type_id,
                 team_id=team_id,
-                use_llm=use_llm
+                use_llm=use_llm,
+                use_full_llm=use_full_llm
             )
             if not wallet_data:
                 raise ValueError("PDF processing returned empty result")
