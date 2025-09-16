@@ -1,0 +1,87 @@
+{
+  "formatVersion": 1,
+  "passTypeIdentifier": "pass.tapass",
+  "teamIdentifier": "DSW9XCBAK2",
+  "organizationName": "אימון חזה מחזה",
+  "description": "לזוז אשדוד חוף הקשתות",
+  "serialNumber": "TPS1000",
+  "locale": "he-IL",
+
+  "foregroundColor": "rgb(255,130,0)",
+  "labelColor": "rgb(255,130,0)",
+  "backgroundColor": "rgb(0,0,0)",
+
+  "relevantDate": "2025-09-15T10:15:00+03:00",
+
+  "barcodes": [
+    {
+      "format": "PKBarcodeFormatQR",
+      "message": "226512246582947",
+      "messageEncoding": "utf-8",
+      "altText": "226512246582947"
+    }
+  ],
+
+  "eventTicket": {
+    "headerFields": [
+      {
+        "key": "order",
+        "label": "מספר הזמנה",
+        "value": "226512246582947",
+        "textAlignment": "PKTextAlignmentRight"
+      }
+    ],
+    "primaryFields": [
+      {
+        "key": "movie",
+        "label": "שם הסרט",
+        "value": "אימון חזה מחזה - לזוז אשדוד חוף הקשתות",
+        "textAlignment": "PKTextAlignmentRight"
+      }
+    ],
+    "secondaryFields": [
+      {
+        "key": "hall",
+        "label": "אולם",
+        "value": "היכל הבנץ'",
+        "textAlignment": "PKTextAlignmentRight"
+      },
+      {
+        "key": "row",
+        "label": "שורה",
+        "value": "7",
+        "textAlignment": "PKTextAlignmentRight"
+      }
+    ],
+    "auxiliaryFields": [
+      {
+        "key": "cinema",
+        "label": "מכון כושר",
+        "value": "לזוז אשדוד",
+        "textAlignment": "PKTextAlignmentRight"
+      },
+      {
+        "key": "seat",
+        "label": "כיסא",
+        "value": "4",
+        "textAlignment": "PKTextAlignmentRight"
+      },
+      {
+        "key": "when",
+        "label": "תאריך ושעה",
+        "value": "15/09/2025 10:15",
+        "textAlignment": "PKTextAlignmentRight"
+      }
+    ],
+    "backFields": [
+      {
+        "key": "notes",
+        "label": "מידע",
+        "value": "הצגה ב-פלאנט ראשון לציון, אולם 10, שורה 7, כיסא 4, בתאריך 15/08/2025 בשעה 22:00.",
+        "textAlignment": "PKTextAlignmentRight"
+      }
+    ]
+  },
+
+  "sharingProhibited": false
+}
