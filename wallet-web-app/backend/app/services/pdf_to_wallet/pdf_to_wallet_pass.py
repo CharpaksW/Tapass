@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-PDF to Apple Wallet Pass Converter - Modular Version
+PDF to Apple Wallet Pass Converter
 
 A production-ready CLI tool that converts arbitrary ticket/receipt-like PDFs 
 into Apple Wallet pass.json payloads with deterministic extraction and optional LLM mapping.
@@ -43,11 +43,11 @@ logger = logging.getLogger(__name__)
 
 # Import our modular components
 try:
-    from pdf_to_json.processor import WalletPassProcessor
-    from pdf_to_json.utils import FileUtils, TestRunner
+    from processor import WalletPassProcessor
+    from utils import FileUtils, TestRunner
 except ImportError as e:
-    print(f"Failed to import pdf_to_json modules: {e}")
-    print("Make sure you're running from the correct directory with the pdf_to_json package")
+    print(f"Failed to import pdf_to_wallet modules: {e}")
+    print("Make sure you're running from the correct directory with the pdf_to_wallet package")
     sys.exit(1)
 
 
