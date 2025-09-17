@@ -13,7 +13,7 @@ from typing import Dict, Optional, Any, List
 from io import BytesIO
 
 from .llm_prompt import get_vision_extraction_prompt
-from .category_processors import process_llm_data_to_wallet_passes
+from .response_json_to_pkpass_json import process_llm_data_to_wallet_passes
 
 logger = logging.getLogger(__name__)
 
