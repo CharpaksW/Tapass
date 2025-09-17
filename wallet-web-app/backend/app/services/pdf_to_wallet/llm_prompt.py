@@ -56,7 +56,9 @@ Do not include any extra text, markdown, or comments. Just raw JSON matching thi
   "tickets_found": 0,
   "locale_detected": "BCP47-or-null",
   "sanity_warnings": ["string"],
-
+  "backgroundColor": "rgb(0, 0, 0)"| detected rgb(),
+  "foregroundColor": "rgb(255, 255, 255)" | suitable rgb() but not black,
+  "labelColor": "rgb(255, 255, 255)" | suitable rgb() but not black,
   "tickets": [
     {{
       "raw_title": "string|null",
