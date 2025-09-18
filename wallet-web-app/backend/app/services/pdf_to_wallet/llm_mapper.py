@@ -12,7 +12,7 @@ from typing import Dict, Optional
 
 try:
     import jsonschema
-    from .models import LLM_OUTPUT_SCHEMA, TicketData
+    from models import LLM_OUTPUT_SCHEMA, TicketData
 except ImportError as e:
     raise ImportError(f"Missing required dependency: {e}. Install with: pip install jsonschema")
 

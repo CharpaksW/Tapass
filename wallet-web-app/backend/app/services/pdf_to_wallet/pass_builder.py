@@ -4,7 +4,7 @@ Apple Wallet pass builder for different pass types.
 
 import logging
 from typing import Dict
-from .models import TicketData
+from models import TicketData
 
 logger = logging.getLogger(__name__)
 

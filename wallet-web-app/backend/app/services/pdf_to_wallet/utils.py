@@ -37,7 +37,7 @@ class TestRunner:
         """Run basic self-tests"""
         logger.info("Running self-tests...")
         
-        from .field_parser import FieldParser
+        from field_parser import FieldParser
         
         # Test date parsing
         test_text = "Event on 25/12/2024 at 19:30. Seat 12A, Row 5. Booking: ABC123"
