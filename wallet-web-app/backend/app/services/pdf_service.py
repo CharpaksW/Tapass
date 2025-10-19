@@ -43,8 +43,7 @@ class PDFService:
                      team_id: str = "TEST123456",
                      pass_type: str = None,
                      timezone: str = "+00:00",
-                     use_llm: bool = False,
-                     use_full_llm: bool = False) -> Dict:
+                     use_llm: bool = False) -> Dict:
         """
         Convert PDF bytes to wallet pass JSON.
         
@@ -55,9 +54,7 @@ class PDFService:
             team_id: Apple Developer team ID
             pass_type: Specific pass type or auto-detect if None
             timezone: Timezone offset for datetime fields
-            use_llm: Whether to use LLM for enhanced field mapping (traditional approach)
-            use_full_llm: Whether to use full LLM processing (send entire PDF to LLM)
-            
+            use_llm: Whether to use LLM for enhanced field mapping          
         Returns:
             Dict containing wallet pass JSON structure
         """
@@ -74,6 +71,7 @@ class PDFService:
         
         try:
             # Write PDF bytes to temporary file for processing
+            # TODO:: how concurrent requests are handled?
             with tempfile.NamedTemporaryFile(suffix='.pdf', delete=False) as tmp_file:
                 tmp_file.write(pdf_bytes)
                 tmp_file.flush()
@@ -90,7 +88,6 @@ class PDFService:
                     pass_type=pass_type,
                     timezone=timezone,
                     use_llm=use_llm,
-                    use_full_llm=use_full_llm,
                     api_key_env="OPENAI_API_KEY"
                 )
                 
